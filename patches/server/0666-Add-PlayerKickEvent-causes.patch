@@ -5,7 +5,7 @@ Subject: [PATCH] Add PlayerKickEvent causes
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index e03018882da878ddc51986733cfd6ea1c1815e9b..088334869cb62797a1e1d1bbb6187f03189d852d 100644
+index aeb3a0a4a7142d5caf1aa5cb7dff202da6b450cd..b6523406f7cc451c9a70693df84b1eaf54c5519c 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -2064,7 +2064,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -57,7 +57,7 @@ index 708ac03d5a849bf09c49547306e4a8c5a5ef8d91..5a8df368a4a25839cd4ac9be6972da2e
          }
  
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index b12d7f8ac2ac446eb0cdfa1e73de6690255752e5..a12685a383ffd8431e172e46fcc9b95d0472b9a2 100644
+index d22d6aab553e8392ac7ee169179a156a7c4ef513..1db88b90cfb461a5388d3a3c9f0ab41a3e589206 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -321,7 +321,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
@@ -100,12 +100,12 @@ index b12d7f8ac2ac446eb0cdfa1e73de6690255752e5..a12685a383ffd8431e172e46fcc9b95d
  
      public void disconnect(String s) {
          // Paper start
--        this.disconnect(PaperAdventure.LEGACY_SECTION_UXRC.deserialize(s));
-+        this.disconnect(PaperAdventure.LEGACY_SECTION_UXRC.deserialize(s), org.bukkit.event.player.PlayerKickEvent.Cause.UNKNOWN);
+-        this.disconnect(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(s));
++        this.disconnect(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(s), org.bukkit.event.player.PlayerKickEvent.Cause.UNKNOWN);
 +    }
 +
 +    public void disconnect(String s, PlayerKickEvent.Cause cause) {
-+        this.disconnect(PaperAdventure.LEGACY_SECTION_UXRC.deserialize(s), cause);
++        this.disconnect(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(s), cause);
      }
  
      public void disconnect(final Component reason) {
@@ -318,7 +318,7 @@ index b12d7f8ac2ac446eb0cdfa1e73de6690255752e5..a12685a383ffd8431e172e46fcc9b95d
          }
  
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index ad7e4ec5ca3f2f874c916d7ee80f5b2b2ae03bf8..9b55968cb1db5f77a8e858e2a7aa66d518ddd00a 100644
+index df9bd8e55fdc404df18422abdb1cce888f89a018..cecb2e9d2666ea4db826ffb7e0b158528a95368b 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -715,7 +715,7 @@ public abstract class PlayerList {
@@ -342,7 +342,7 @@ index ad7e4ec5ca3f2f874c916d7ee80f5b2b2ae03bf8..9b55968cb1db5f77a8e858e2a7aa66d5
          // CraftBukkit end
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index ffa49594d4a137be7476677488605ce74c607bba..43bfae712369c3c895a0007041d3821bb6257ccd 100644
+index 3bce90f34b758a3499abf8bf91687dae45e4933d..2acd73403f0154b54be421a6d8ef664acbcb3805 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -504,16 +504,21 @@ public class CraftPlayer extends CraftHumanEntity implements Player {

@@ -5,7 +5,7 @@ Subject: [PATCH] ProfileWhitelistVerifyEvent
 
 
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 093b510293fdad471fd3dc9727b50699ae9bac8f..6466a0b03a0e398fdf580d97cdfdf1e612f2ade3 100644
+index da6f0550fe34d5230be1344b4f3c075ea2b392b5..d08a62f2bd2f220dd76a3329b6d1f75310457bf6 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -615,9 +615,9 @@ public abstract class PlayerList {
@@ -14,7 +14,7 @@ index 093b510293fdad471fd3dc9727b50699ae9bac8f..6466a0b03a0e398fdf580d97cdfdf1e6
              event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Paper - Adventure
 -        } else if (!this.isWhiteListed(gameprofile)) {
 -            chatmessage = new TranslatableComponent("multiplayer.disconnect.not_whitelisted");
--            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, PaperAdventure.LEGACY_SECTION_UXRC.deserialize(org.spigotmc.SpigotConfig.whitelistMessage)); // Spigot // Paper - Adventure
+-            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(org.spigotmc.SpigotConfig.whitelistMessage)); // Spigot // Paper - Adventure
 +        } else if (!this.isWhitelisted(gameprofile, event)) { // Paper
 +            //chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted"); // Paper
 +            //event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot // Paper - moved to isWhitelisted
@@ -38,7 +38,7 @@ index 093b510293fdad471fd3dc9727b50699ae9bac8f..6466a0b03a0e398fdf580d97cdfdf1e6
 +        event.callEvent();
 +        if (!event.isWhitelisted()) {
 +            if (loginEvent != null) {
-+                loginEvent.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, PaperAdventure.LEGACY_SECTION_UXRC.deserialize(event.getKickMessage() == null ? org.spigotmc.SpigotConfig.whitelistMessage : event.getKickMessage()));
++                loginEvent.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(event.getKickMessage() == null ? org.spigotmc.SpigotConfig.whitelistMessage : event.getKickMessage()));
 +            }
 +            return false;
 +        }
