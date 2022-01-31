@@ -1,0 +1,135 @@
+From b147de60e3ad44d084cc79c067f26eafb6fb15f8 Mon Sep 17 00:00:00 2001
+From: Harvey Chua <harvs89.2@gmail.com>
+Date: Mon, 31 Jan 2022 15:28:07 +0000
+Subject: [PATCH] Adding Configurable Gravity Block Duplication
+adapted from https://github.com/Chooken/SandPaper/blob/2ab37b472b8e762a2f2d908e19e92ea5b90d9e7b/patches/server/0829-Adding-Configurable-Gravity-Block-Duplication.patch
+
+---
+ .../com/destroystokyo/paper/PaperConfig.java  | 11 ++++++++
+ .../net/minecraft/world/entity/Entity.java    |  6 ++++-
+ .../world/entity/item/FallingBlockEntity.java | 27 ++++++++++++-------
+ .../world/level/block/EndPortalBlock.java     | 23 +++++++++++++---
+ 4 files changed, 53 insertions(+), 14 deletions(-)
+
+diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+index 61ea1c988..3e204a70e 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+@@ -481,6 +481,17 @@ public class PaperConfig {
+         allowBlockPermanentBreakingExploits = getBoolean("settings.unsupported-settings.allow-permanent-block-break-exploits", allowBlockPermanentBreakingExploits);
+     }
+ 
++    public static boolean allowGravityBlockDuplicationExploits = true;
++    private static void allowGravityBlockDuplicationExploits() {
++        if (config.contains("allow-gravity-block-duplication-exploits")) {
++            allowGravityBlockDuplicationExploits = config.getBoolean("allow-gravity-block-duplication-exploits", true);
++            config.set("allow-gravity-block-duplication-exploits", null);
++        }
++
++        config.set("settings.sandpaper-settings.allow-gravity-block-duplication-exploits-readme", "This setting controls if players should be able use gravity block duplication exploits through the use of end portals.");
++        allowGravityBlockDuplicationExploits = getBoolean("settings.sandpaper-settings.allow-gravity-block-duplication-exploits", allowGravityBlockDuplicationExploits);
++    }
++
+     public static boolean consoleHasAllPermissions = false;
+     private static void consoleHasAllPermissions() {
+         consoleHasAllPermissions = getBoolean("settings.console-has-all-permissions", consoleHasAllPermissions);
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 4584dcec8..7680eb487 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -2767,7 +2767,11 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource, i
+             }
+ 
+             this.processPortalCooldown();
+-            this.tickEndPortal(); // Paper - make end portalling safe
++            // SandPaper start - add configurable gravity block dupe
++            if (!com.destroystokyo.paper.PaperConfig.allowGravityBlockDuplicationExploits) {
++                this.tickEndPortal(); // Paper - make end portalling safe
++            }
++            // SandPaper end - add configurable gravity block dupe
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+index 0c94b4cb6..b79cbe4d5 100644
+--- a/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
++++ b/src/main/java/net/minecraft/world/entity/item/FallingBlockEntity.java
+@@ -110,11 +110,16 @@ public class FallingBlockEntity extends Entity {
+ 
+     @Override
+     public void tick() {
+-        // Paper start - fix sand duping
+-        if (this.isRemoved()) {
+-            return;
+-        }
+-        // Paper end - fix sand duping
++        // SandPaper start - add configurable gravity block dupe
++        if (!com.destroystokyo.paper.PaperConfig.allowGravityBlockDuplicationExploits) {
++            // Paper start - fix sand duping
++            if (this.isRemoved()) {
++                return;
++            }
++            // Paper end - fix sand duping
++         }
++        // SandPaper end - add configurable gravity block dupe
++
+         if (this.blockState.isAir()) {
+             this.discard();
+         } else if (this.level.isClientSide && this.removeAtMillis > 0L) {
+@@ -152,11 +157,15 @@ public class FallingBlockEntity extends Entity {
+ 
+             this.move(MoverType.SELF, this.getDeltaMovement());
+ 
+-            // Paper start - fix sand duping
+-            if (this.isRemoved()) {
+-                return;
++            // SandPaper start - add configurable gravity block dupe
++            if (!com.destroystokyo.paper.PaperConfig.allowGravityBlockDuplicationExploits) {
++                // Paper start - fix sand duping
++                if (this.isRemoved()) {
++                    return;
++                }
++                // Paper end - fix sand duping
+             }
+-            // Paper end - fix sand duping
++            // SandPaper end - add configurable gravity block dupe
+ 
+             // Paper start - Configurable EntityFallingBlock height nerf
+             if (this.level.paperConfig.fallingBlockHeightNerf != 0 && this.getY() > this.level.paperConfig.fallingBlockHeightNerf) {
+diff --git a/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java b/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
+index 19892cb3c..87b791ed3 100644
+--- a/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/EndPortalBlock.java
+@@ -53,10 +53,25 @@ public class EndPortalBlock extends BaseEntityBlock {
+                 // return; // CraftBukkit - always fire event in case plugins wish to change it
+             }
+ 
+-            // Paper start - move all of this logic into portal tick
+-            entity.portalWorld = ((ServerLevel)world);
+-            entity.portalBlock = pos.immutable();
+-            // Paper end - move all of this logic into portal tick
++            // SandPaper start - add configurable gravity block dupe
++            if (!com.destroystokyo.paper.PaperConfig.allowGravityBlockDuplicationExploits) {
++                // Paper start - move all of this logic into portal tick
++                entity.portalWorld = ((ServerLevel) world);
++                entity.portalBlock = pos.immutable();
++                // Paper end - move all of this logic into portal tick
++            } else {
++                // CraftBukkit start - Entity in portal
++                EntityPortalEnterEvent event = new EntityPortalEnterEvent(entity.getBukkitEntity(), new org.bukkit.Location(world.getWorld(), pos.getX(), pos.getY(), pos.getZ()));
++                world.getCraftServer().getPluginManager().callEvent(event);
++
++                if (entity instanceof ServerPlayer) {
++                    ((ServerPlayer) entity).changeDimension(worldserver, PlayerTeleportEvent.TeleportCause.END_PORTAL);
++                    return;
++                }
++                // CraftBukkit end
++                entity.changeDimension(worldserver);
++            }
++            // SandPaper start - add configurable gravity block dupe
+         }
+ 
+     }
+-- 
+2.25.1
+
